@@ -1,15 +1,44 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const OPENAI_API_KEY = "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"; 
+const OPENAI_API_KEY = "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"; // Replace with your key
 
 async function getOpenAIResponse(messages) {
+  const response = await axios.post(
+    "https://api.openai.com/v1/chat/completions",
+    {
+      model: "gpt-3.5-turbo",
+      messages,
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
+    }
+  );
+  return response.data.choices[0].message.content.trim();
+}
+
+async function extractMood(userMessages) {
+  // Prepare a system prompt and messages array for mood extraction
+  const moodPrompt = [
+    {
+      role: "system",
+      content:
+        "You are a mood detection assistant. Given only the USER's messages from a conversation, determine the user's overall mood. Reply with a single word: happy, sad, excited, or neutral.",
+    },
+    ...userMessages.map((msg) => ({
+      role: "user",
+      content: msg.content,
+    })),
+  ];
   try {
     const response = await axios.post(
       "https://api.openai.com/v1/chat/completions",
       {
         model: "gpt-3.5-turbo",
-        messages: messages,
+        messages: moodPrompt,
       },
       {
         headers: {
@@ -18,9 +47,9 @@ async function getOpenAIResponse(messages) {
         },
       }
     );
-    return response.data.choices[0].message.content.trim();
+    return response.data.choices[0].message.content.trim().toLowerCase();
   } catch (error) {
-    return "Sorry, something went wrong.";
+    return "neutral";
   }
 }
 
@@ -33,25 +62,22 @@ function ChatbotScreen({ onFinish }) {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-    const newMessages = [
-      ...messages,
-      { role: "user", content: input }
-    ];
+    const newMessages = [...messages, { role: "user", content: input }];
     setMessages(newMessages);
     setLoading(true);
-
     const botReply = await getOpenAIResponse(newMessages);
-    const allMessages = [
-      ...newMessages,
-      { role: "assistant", content: botReply }
-    ];
-    setMessages(allMessages);
+    setMessages([...newMessages, { role: "assistant", content: botReply }]);
     setInput("");
     setLoading(false);
+  };
 
-    // You can add logic here to extract the mood from the bot's reply and call onFinish if needed
-    // For now, let's just pass 'neutral'
-    // onFinish("neutral");
+  const handleFinish = async () => {
+    setLoading(true);
+    // Filter out only user messages
+    const userMessages = messages.filter((msg) => msg.role === "user");
+    const mood = await extractMood(userMessages);
+    setLoading(false);
+    onFinish(mood);
   };
 
   return (
@@ -84,7 +110,13 @@ function ChatbotScreen({ onFinish }) {
             Send
           </button>
         </div>
-        {loading && <div>Thinking...</div>}
+        <button
+          onClick={handleFinish}
+          style={{ marginTop: 20, fontSize: 16, width: "100%" }}
+          disabled={loading}
+        >
+          {loading ? "Analyzing mood..." : "Finish Chat & Show Mood Feed"}
+        </button>
       </div>
     </div>
   );
