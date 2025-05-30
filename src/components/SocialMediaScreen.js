@@ -1,38 +1,73 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
-// Mock images for each mood
-const moodImages = {
-  happy: [
-    "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80",
-    "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80",
-  ],
-  sad: [
-    "https://images.unsplash.com/photo-1465101178521-c1a9136a3c8b?auto=format&fit=crop&w=400&q=80",
-    "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=400&q=80",
-  ],
-  excited: [
-    "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80",
-    "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=400&q=80",
-  ],
-  neutral: [
-    "https://images.unsplash.com/photo-1519985176271-adb1088fa94c?auto=format&fit=crop&w=400&q=80",
-    "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=400&q=80",
-  ],
+const BACKEND_URL = "http://localhost:5000";
+
+const moodPrompts = {
+  happy: "A vibrant, colorful scene with sunshine and smiling people, digital art",
+  sad: "A rainy day, blue tones, a person looking thoughtful, digital painting",
+  excited: "A dynamic celebration with fireworks, bright lights, digital art",
+  neutral: "A calm landscape with soft lighting and pastel colors, digital painting",
 };
 
 function SocialMediaScreen({ mood }) {
-  const images = moodImages[mood] || moodImages["neutral"];
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchImages() {
+      setLoading(true);
+      const prompt = moodPrompts[mood] || moodPrompts["neutral"];
+      try {
+        const response = await axios.post(`${BACKEND_URL}/api/generate-image`, {
+          prompt,
+        });
+        setImages(response.data.images);
+      } catch (e) {
+        setImages([]);
+      }
+      setLoading(false);
+    }
+    fetchImages();
+  }, [mood]);
 
   return (
     <div style={{ maxWidth: 700, margin: "50px auto", textAlign: "center" }}>
       <h2>Here's your mood feed!</h2>
-      <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 20 }}>
-        {images.map((img, idx) => (
-          <div key={idx} style={{ border: "1px solid #ddd", borderRadius: 10, padding: 10 }}>
-            <img src={img} alt={`mood img ${idx}`} style={{ width: 200, height: 200, objectFit: "cover", borderRadius: 10 }} />
-          </div>
-        ))}
-      </div>
+      {loading ? (
+        <p>Generating images...</p>
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            flexWrap: "wrap",
+            gap: 20,
+          }}
+        >
+          {images.map((img, idx) => (
+            <div
+              key={idx}
+              style={{
+                border: "1px solid #ddd",
+                borderRadius: 10,
+                padding: 10,
+              }}
+            >
+              <img
+                src={img}
+                alt={`mood img ${idx}`}
+                style={{
+                  width: 200,
+                  height: 200,
+                  objectFit: "cover",
+                  borderRadius: 10,
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
