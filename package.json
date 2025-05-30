@@ -1,5 +1,5 @@
 {
-  "name": "my-mood-app",
+  "name": "therapeutic-chatbot",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -52,5 +52,5 @@
   "bugs": {
     "url": "https://github.com/NoortjevanVelzen/therapeutic-chatbot/issues"
   },
-  "homepage": "https://github.com/NoortjevanVelzen/therapeutic-chatbot#readme"
+  "homepage": "https://github.com/NoortjevanVelzen/therapeutic-chatbot"
 }
