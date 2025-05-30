@@ -13,18 +13,26 @@ const moodPrompts = {
 function SocialMediaScreen({ mood }) {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     async function fetchImages() {
       setLoading(true);
+      setError(null);
+      setImages([]);
       const prompt = moodPrompts[mood] || moodPrompts["neutral"];
       try {
         const response = await axios.post(`${BACKEND_URL}/api/generate-image`, {
           prompt,
         });
-        setImages(response.data.images);
+        setImages(response.data.images || []);
       } catch (e) {
         setImages([]);
+        setError(
+          e.response && e.response.data && e.response.data.error
+            ? e.response.data.error
+            : "Image generation failed."
+        );
       }
       setLoading(false);
     }
@@ -34,6 +42,9 @@ function SocialMediaScreen({ mood }) {
   return (
     <div style={{ maxWidth: 700, margin: "50px auto", textAlign: "center" }}>
       <h2>Here's your mood feed!</h2>
+      {error && (
+        <div style={{ color: "red", margin: 16 }}>{error}</div>
+      )}
       {loading ? (
         <p>Generating images...</p>
       ) : (
@@ -45,27 +56,31 @@ function SocialMediaScreen({ mood }) {
             gap: 20,
           }}
         >
-          {images.map((img, idx) => (
-            <div
-              key={idx}
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: 10,
-                padding: 10,
-              }}
-            >
-              <img
-                src={img}
-                alt={`mood img ${idx}`}
+          {images.length > 0 ? (
+            images.map((img, idx) => (
+              <div
+                key={idx}
                 style={{
-                  width: 200,
-                  height: 200,
-                  objectFit: "cover",
+                  border: "1px solid #ddd",
                   borderRadius: 10,
+                  padding: 10,
                 }}
-              />
-            </div>
-          ))}
+              >
+                <img
+                  src={img}
+                  alt={`mood img ${idx}`}
+                  style={{
+                    width: 200,
+                    height: 200,
+                    objectFit: "cover",
+                    borderRadius: 10,
+                  }}
+                />
+              </div>
+            ))
+          ) : (
+            <div style={{ color: "#666" }}>No images generated.</div>
+          )}
         </div>
       )}
     </div>

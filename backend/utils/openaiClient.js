@@ -27,7 +27,7 @@ exports.openaiImage = async (prompt) => {
     {
       model: 'dall-e-3',
       prompt,
-      n: 2,
+      n: 1,
       size: '512x512',
     },
     {

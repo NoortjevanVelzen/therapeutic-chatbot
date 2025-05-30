@@ -9,12 +9,14 @@ function ChatbotScreen({ onFinish }) {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Chat with backend
   const sendMessage = async () => {
     if (!input.trim()) return;
+    setError(null);
     const newMessages = [...messages, { role: "user", content: input }];
     setMessages(newMessages);
+    setInput("");
     setLoading(true);
 
     try {
@@ -28,25 +30,37 @@ function ChatbotScreen({ onFinish }) {
     } catch (e) {
       setMessages([
         ...newMessages,
-        { role: "assistant", content: "Sorry, something went wrong." },
+        {
+          role: "assistant",
+          content: "Sorry, there was a problem. Please try again.",
+        },
       ]);
+      setError(
+        e.response && e.response.data && e.response.data.error
+          ? e.response.data.error
+          : "Server error"
+      );
     }
-    setInput("");
     setLoading(false);
   };
 
-  // Mood extraction via backend
   const handleFinish = async () => {
     setLoading(true);
+    setError(null);
     const userMessages = messages.filter((msg) => msg.role === "user");
     try {
       const response = await axios.post(`${BACKEND_URL}/api/mood`, {
         userMessages,
       });
       setLoading(false);
-      onFinish(response.data.mood); // Pass mood to parent
+      onFinish(response.data.mood);
     } catch (e) {
       setLoading(false);
+      setError(
+        e.response && e.response.data && e.response.data.error
+          ? e.response.data.error
+          : "Server error"
+      );
       onFinish("neutral");
     }
   };
@@ -92,18 +106,32 @@ function ChatbotScreen({ onFinish }) {
           <button
             onClick={sendMessage}
             style={{ fontSize: 16, marginLeft: 8 }}
-            disabled={loading}
+            disabled={loading || !input.trim()}
           >
             Send
           </button>
         </div>
         <button
           onClick={handleFinish}
-          style={{ marginTop: 20, fontSize: 16, width: "100%" }}
+          style={{
+            marginTop: 20,
+            fontSize: 16,
+            width: "100%",
+            background: "#35b",
+            color: "#fff",
+            border: "none",
+            borderRadius: 5,
+            padding: 10,
+          }}
           disabled={loading}
         >
           {loading ? "Analyzing mood..." : "Finish Chat & Show Mood Feed"}
         </button>
+        {error && (
+          <div style={{ color: "red", marginTop: 10, fontSize: 14 }}>
+            {error}
+          </div>
+        )}
       </div>
     </div>
   );
