@@ -5,56 +5,83 @@ import axios from "axios";
 
 const BACKEND_URL = "http://localhost:5000";
 
-export default function SocialMediaFeed({ userInput }) {
-  const [post, setPost] = useState(null);   // { imageUrl, prompt, mood }
+function getMoodDescription(mood) {
+  return `This feed is based on your detected mood: ${mood}. Enjoy images that reflect this feeling!`;
+}
+
+/**
+ * This will be your “wrapper” component.
+ * It renders a bit of text (the “header”), then the SocialMediaFeed below.
+ */
+export default function SocialMediaScreen({ mood }) {
+  return (
+    <div style={{ maxWidth: 600, margin: "0 auto", padding: "44px 0" }}>
+      {/* ─── Text Header / Description ─── */}
+      <div
+        style={{
+          marginBottom: 32,
+          padding: "18px 30px",
+          background: "#f3f7ff",
+          borderRadius: 12,
+          border: "1px solid #dbeafe",
+          fontSize: 20,
+          color: "#183153",
+          textAlign: "center",
+          boxShadow: "0 2px 8px #0001",
+        }}
+      >
+        <span style={{ fontWeight: 500, fontSize: 22, color: "#375bb6" }}>
+          Mood detected:{" "}
+        </span>
+        <span
+          style={{
+            fontWeight: 700,
+            fontSize: 22,
+            textTransform: "capitalize",
+          }}
+        >
+          {mood}
+        </span>
+        <div style={{ marginTop: 12, fontSize: 17 }}>
+          {getMoodDescription(mood)}
+        </div>
+      </div>
+
+      {/* ─── Render the feed component below the text ─── */}
+      <SocialMediaFeed mood={mood} />
+    </div>
+  );
+}
+
+/*
+ * This generates the “Generate Mood Feed” button, API calls, and displays the post.
+ */
+export function SocialMediaFeed({ mood }) {
+  const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // 1) Extract mood from user input
-  async function detectMood(text) {
-    try {
-      const res = await axios.post(`${BACKEND_URL}/api/detect-mood`, { text });
-      return res.data.mood;
-    } catch (e) {
-      return "neutral";
-    }
-  }
-
-  // 2) Generate a DALL·E prompt from that mood
   async function getPrompt(mood) {
     const res = await axios.post(`${BACKEND_URL}/api/generate-prompt`, { mood });
     return res.data.dallePrompt;
   }
 
-  // 3) Generate an image from that prompt
   async function getImage(prompt) {
     const res = await axios.post(`${BACKEND_URL}/api/generate-image`, { prompt });
-    // Assume backend returns { images: [ "https://…url…" ] }
     return res.data.images[0];
   }
 
-  // Called when you click “Generate Mood Feed”
   const handleGenerateFeed = async () => {
     setLoading(true);
     setError(null);
     setPost(null);
 
     try {
-      // If userInput is empty, default mood to “neutral”
-      const extractedMood = userInput ? await detectMood(userInput) : "neutral";
-
-      // Create a text prompt based on that mood:
+      const extractedMood = mood || "neutral";
       const promptText = await getPrompt(extractedMood);
-
-      // Generate an AI image from the prompt:
       const imageUrl = await getImage(promptText);
 
-      // Build the “post” object:
-      setPost({
-        mood: extractedMood,
-        prompt: promptText,
-        imageUrl,
-      });
+      setPost({ mood: extractedMood, prompt: promptText, imageUrl });
     } catch (e) {
       console.error("Error generating post:", e);
       setError("Failed to generate feed. Please try again.");
@@ -74,7 +101,9 @@ export default function SocialMediaFeed({ userInput }) {
         boxShadow: "0 3px 12px rgba(0,0,0,0.08)",
       }}
     >
-      <h2 style={{ textAlign: "center", marginBottom: 20 }}>Social Mood Feed</h2>
+      <h2 style={{ textAlign: "center", marginBottom: 20 }}>
+        Social Mood Feed
+      </h2>
 
       <button
         onClick={handleGenerateFeed}
@@ -105,7 +134,7 @@ export default function SocialMediaFeed({ userInput }) {
             overflow: "hidden",
           }}
         >
-          {/* ─── Header (Avatar + Username) ─── */}
+          {/* Header (avatar + username) */}
           <div
             style={{
               display: "flex",
@@ -128,7 +157,7 @@ export default function SocialMediaFeed({ userInput }) {
             <span style={{ fontWeight: 600, fontSize: 16 }}>AI_Generator</span>
           </div>
 
-          {/* ─── Image ─── */}
+          {/* AI‐generated image */}
           <img
             src={post.imageUrl}
             alt="AI generated"
@@ -140,7 +169,7 @@ export default function SocialMediaFeed({ userInput }) {
             }}
           />
 
-          {/* ─── Icon Bar (Like / Comment / Share) ─── */}
+          {/* Icon bar (like / comment / share) */}
           <div
             style={{
               display: "flex",
@@ -149,7 +178,6 @@ export default function SocialMediaFeed({ userInput }) {
               gap: 16,
             }}
           >
-            {/* Simple placeholders for like/comment/share icons */}
             <span role="img" aria-label="like" style={{ fontSize: 24, cursor: "pointer" }}>
               ❤️
             </span>
@@ -161,7 +189,7 @@ export default function SocialMediaFeed({ userInput }) {
             </span>
           </div>
 
-          {/* ─── Caption (Prompt or Hashtags) ─── */}
+          {/* Caption */}
           <div style={{ padding: "0 16px 16px 16px" }}>
             <span style={{ fontWeight: 600, marginRight: 8 }}>AI_Generator</span>
             <span style={{ color: "#333" }}>{post.prompt}</span>

@@ -174,6 +174,36 @@ app.post("/api/detect-mood", async (req, res) => {
 });
 
 // -------------------------------------------------------------------------------------
+// Endpoint: Provide mood description (via OpenAI API)
+// POST /api/mood-description
+// Body: { "mood": "<user mood>" }
+// -------------------------------------------------------------------------------------
+
+app.post('/api/mood-description', async (req, res) => {
+  const { mood } = req.body;
+  if (!mood) return res.status(400).json({ error: "Mood is required" });
+
+  // Use GPT-3.5/4 to create a friendly description for the mood
+  const prompt = `Describe in 1 or 2 sentences what it means when a person's mood is "${mood}". The description should be warm, supportive, and positive. Do not use the word "mood" in your response.`;
+
+  try {
+    const response = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: [
+        { role: "system", content: "You are an empathetic assistant." },
+        { role: "user", content: prompt }
+      ],
+      max_tokens: 80,
+      temperature: 0.7
+    });
+    const description = response.data.choices[0].message.content.trim();
+    res.json({ description });
+  } catch (e) {
+    res.status(500).json({ error: "Failed to generate mood description." });
+  }
+});
+
+// -------------------------------------------------------------------------------------
 // Endpoint: Generate DALL·E image from prompt (OpenAI)
 // POST /api/generate-image
 // Body: { "prompt": "<dalle prompt>", "size": "512x512" (optional) }
@@ -262,8 +292,7 @@ app.post("/api/chat", async (req, res) => {
         .json({ error: "No user message found to respond to." });
     }
 
-       // ══ Option B: Call OpenAI’s chat endpoint ══
-    // Uncomment below, and comment out the stub above, if you want a real LLM response:
+       // ══ Call OpenAI’s chat endpoint ══
         let chatResponse;
     if (isV4 && typeof openai.createChatCompletion === "function") {
       chatResponse = await openai.createChatCompletion({
