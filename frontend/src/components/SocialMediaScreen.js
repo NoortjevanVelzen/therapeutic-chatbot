@@ -10,7 +10,24 @@ function generatePromptForMood(mood) {
   if (!mood || typeof mood !== "string" || mood.trim() === "") {
     mood = "neutral";
   }
-  return `An artistic image that visually represents the mood "${mood}".`;
+  return `Create a square portrait of a person expressing the opposite of the mood “${mood}” (except if it’s positive, then match it):
+
+- **Negative (anxious, sad, angry, overwhelmed):**  
+  • Depict the person calm or confident—soft smile, relaxed shoulders, gentle backlighting or a warm glow. Add a calming symbol.
+
+- **Neutral/Contemplative:**  
+  • Show the person subtly uplifted—slight smile, bright eyes, soft highlights. Add a symbol of warmth. 
+
+- **Positive (happy, hopeful, loving):**  
+  • Portray the person aligned with that positivity—open smile, warm golden-hour lighting. Add a symbol of joy
+
+**Requirements:**  
+• Realistic style with varied shading (deeper shadows to show stress relief, soft highlights for comfort).  
+• Keep backgrounds minimal.  
+• Use one muted color accent (e.g., pale yellow or soft blue).  
+• No text.
+
+ `;
 }
 
 function SocialMediaScreen({ mood }) {
