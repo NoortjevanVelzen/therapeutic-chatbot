@@ -111,10 +111,17 @@ app.post("/api/generate-prompt", async (req, res) => {
     }
 
     // If neither branch worked, something’s wrong with the OpenAI client version:
-    throw new Error("No supported createChatCompletion method found on the OpenAI client.");
+    throw new Error(
+      "No supported createChatCompletion method found on the OpenAI client."
+    );
   } catch (err) {
-    console.error("Error in /api/generate-prompt:", err?.response?.data || err.message);
-    return res.status(500).json({ error: "Failed to generate a DALL·E prompt." });
+    console.error(
+      "Error in /api/generate-prompt:",
+      err?.response?.data || err.message
+    );
+    return res
+      .status(500)
+      .json({ error: "Failed to generate a DALL·E prompt." });
   }
 });
 
@@ -127,11 +134,15 @@ app.post("/api/detect-mood", async (req, res) => {
   try {
     const { text } = req.body;
     if (typeof text !== "string" || !text.trim()) {
-      return res.status(400).json({ error: "Missing or invalid `text` in request body." });
+      return res
+        .status(400)
+        .json({ error: "Missing or invalid `text` in request body." });
     }
 
     if (!process.env.HF_TOKEN) {
-      return res.status(500).json({ error: "HF_TOKEN is not set in .env." });
+      return res
+        .status(500)
+        .json({ error: "HF_TOKEN is not set in .env." });
     }
 
     const hfResponse = await axios.post(
@@ -152,8 +163,13 @@ app.post("/api/detect-mood", async (req, res) => {
 
     return res.json({ mood: topEmotion.label, scores: emotions });
   } catch (err) {
-    console.error("Mood detection error:", err?.response?.data || err.message);
-    return res.status(500).json({ error: "Failed to detect mood from text." });
+    console.error(
+      "Mood detection error:",
+      err?.response?.data || err.message
+    );
+    return res
+      .status(500)
+      .json({ error: "Failed to detect mood from text." });
   }
 });
 
@@ -166,11 +182,15 @@ app.post("/api/generate-image", async (req, res) => {
   try {
     const { prompt, size } = req.body;
     if (typeof prompt !== "string" || !prompt.trim()) {
-      return res.status(400).json({ error: "Missing or invalid `prompt` in request body." });
+      return res
+        .status(400)
+        .json({ error: "Missing or invalid `prompt` in request body." });
     }
 
     if (!process.env.OPENAI_API_KEY) {
-      return res.status(500).json({ error: "OPENAI_API_KEY is not set in .env." });
+      return res
+        .status(500)
+        .json({ error: "OPENAI_API_KEY is not set in .env." });
     }
 
     // DALL·E 2 only allows n: 1 now
@@ -180,30 +200,153 @@ app.post("/api/generate-image", async (req, res) => {
         prompt,
         n: 1,
         size: size || "512x512",
-        model: "dall-e-2"
+        model: "dall-e-2",
       });
       // In v4, it's response.data.data[0].url
-      const images = response.data.data.map(img => img.url);
+      const images = response.data.data.map((img) => img.url);
       return res.json({ images });
     }
 
     // v3 (older OpenAI SDKs)
-    if (!isV4 && typeof openai.images === "object" && typeof openai.images.generate === "function") {
+    if (
+      !isV4 &&
+      typeof openai.images === "object" &&
+      typeof openai.images.generate === "function"
+    ) {
       response = await openai.images.generate({
         prompt,
         n: 1,
         size: size || "512x512",
-        model: "dall-e-2"
+        model: "dall-e-2",
       });
       // In v3, it's response.data[0].url
-      const images = response.data.map(img => img.url);
+      const images = response.data.map((img) => img.url);
       return res.json({ images });
     }
 
-    throw new Error("No supported createImage method found on the OpenAI client.");
+    throw new Error(
+      "No supported createImage method found on the OpenAI client."
+    );
   } catch (err) {
-    console.error("Image generation error:", err?.response?.data || err.message);
-    return res.status(500).json({ error: "Failed to generate image from prompt." });
+    console.error(
+      "Image generation error:",
+      err?.response?.data || err.message
+    );
+    return res
+      .status(500)
+      .json({ error: "Failed to generate image from prompt." });
+  }
+});
+
+// -------------------------------------------------------------------------------------
+// *** NEW: Endpoint: Chat conversation handler for ChatbotScreen ***
+// POST /api/chat
+// Body: { "messages": [ { role: "user"|"assistant", content: "<text>" }, … ] }
+// -------------------------------------------------------------------------------------
+app.post("/api/chat", async (req, res) => {
+  try {
+    const { messages } = req.body;
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res
+        .status(400)
+        .json({ error: "Missing or invalid `messages` in request body." });
+    }
+
+    // Grab the last user message (if any)
+    const lastUserMsg = messages
+      .filter((m) => m.role === "user")
+      .slice(-1)[0]?.content;
+    if (typeof lastUserMsg !== "string") {
+      return res
+        .status(400)
+        .json({ error: "No user message found to respond to." });
+    }
+
+    // ══ Option A: Stub / echo behavior (for testing) ══
+    // Simply echo back what the user said:
+    const assistantReply = `You said: "${lastUserMsg}"`;
+    return res.json({ reply: assistantReply });
+
+    // ══ Option B: Call OpenAI’s chat endpoint ══
+    // Uncomment below, and comment out the stub above, if you want a real LLM response:
+    /*
+    let chatResponse;
+    if (isV4 && typeof openai.createChatCompletion === "function") {
+      chatResponse = await openai.createChatCompletion({
+        model: "gpt-3.5-turbo",
+        messages,
+      });
+      const assistantReply =
+        chatResponse.data.choices[0].message.content.trim();
+      return res.json({ reply: assistantReply });
+    }
+    if (
+      !isV4 &&
+      openai.chat &&
+      openai.chat.completions &&
+      typeof openai.chat.completions.create === "function"
+    ) {
+      chatResponse = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages,
+      });
+      const assistantReply = chatResponse.choices[0].message.content.trim();
+      return res.json({ reply: assistantReply });
+    }
+    throw new Error("No supported createChatCompletion method found on the OpenAI client.");
+    */
+  } catch (err) {
+    console.error("Error in /api/chat:", err?.response?.data || err.message);
+    return res.status(500).json({ error: "Chat endpoint failed." });
+  }
+});
+
+// -------------------------------------------------------------------------------------
+// *** NEW: Endpoint: Extract final mood from entire chat ***
+// POST /api/mood
+// Body: { "userMessages": ["I feel sad", "I'm lonely", …] }
+// -------------------------------------------------------------------------------------
+app.post("/api/mood", async (req, res) => {
+  try {
+    const { userMessages } = req.body;
+    if (
+      !Array.isArray(userMessages) ||
+      userMessages.length === 0 ||
+      typeof userMessages.slice(-1)[0] !== "string"
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Missing or invalid `userMessages` in request body." });
+    }
+
+    // Take the most recent user message as the text to classify:
+    const lastUserText = userMessages.slice(-1)[0];
+
+    // Reuse the Hugging Face inference logic from /api/detect-mood:
+    if (!process.env.HF_TOKEN) {
+      return res.status(500).json({ error: "HF_TOKEN is not set in .env." });
+    }
+
+    const hfResponse = await axios.post(
+      "https://api-inference.huggingface.co/models/j-hartmann/emotion-english-distilroberta-base",
+      { inputs: lastUserText.trim() },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.HF_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const emotions = hfResponse.data[0];
+    const topEmotion = emotions.reduce((best, curr) =>
+      curr.score > best.score ? curr : best
+    );
+
+    return res.json({ mood: topEmotion.label, scores: emotions });
+  } catch (err) {
+    console.error("Error in /api/mood:", err?.response?.data || err.message);
+    return res.status(500).json({ error: "Mood endpoint failed." });
   }
 });
 
