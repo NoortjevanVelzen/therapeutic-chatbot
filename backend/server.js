@@ -1,101 +1,135 @@
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
+// server.js
+
+// 1) Load .env at the very top:
+require("dotenv").config();
+
+const express = require("express");
+const cors = require("cors");
+const axios = require("axios");
+
+// 2) Import everything from the openai package:
+const OpenAI = require("openai");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// --- OpenAI v4+ Initialization ---
-const OpenAI = require('openai');
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// 3) Log whether the API key is loaded (for sanity check):
+console.log(
+  "🔑 OPENAI_API_KEY loaded? →",
+  process.env.OPENAI_API_KEY ? "YES" : "NO"
+);
 
-// Helper: Standard API error handler
-function handleOpenAIError(res, error, context = "") {
-  if (error.status) {
-    // OpenAI error with HTTP response
-    console.error(`OpenAI API error (${context}):`, error.status, error.message);
-    res.status(500).json({ error: 'OpenAI API error', details: error.message });
+let openai;
+
+// 4) Initialize the OpenAI client in a version‐agnostic way:
+try {
+  // If the package exposes Configuration & OpenAIApi (v4+), use that:
+  if (typeof OpenAI.Configuration === "function" && typeof OpenAI.OpenAIApi === "function") {
+    const configuration = new OpenAI.Configuration({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+    openai = new OpenAI.OpenAIApi(configuration);
+
   } else {
-    // Network or other error
-    console.error(`OpenAI API error (${context}):`, error.message);
-    res.status(500).json({ error: 'OpenAI API error', details: error.message });
+    // Otherwise, assume v3.x where you simply call `new OpenAI()`:
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
   }
+} catch (err) {
+  console.error("⛔ Could not initialize OpenAI client:", err);
+  process.exit(1);
 }
 
-// Chat endpoint
-app.post('/api/chat', async (req, res) => {
+// -------------------------------------------------------------------------------------
+// Example Endpoint #1: Generate a DALL·E prompt from a “mood”
+// -------------------------------------------------------------------------------------
+app.post("/api/generate-prompt", async (req, res) => {
   try {
-    const { messages } = req.body;
-    if (!messages || !Array.isArray(messages)) {
-      return res.status(400).json({ error: 'Invalid input: messages must be an array.' });
+    const { mood } = req.body;
+    if (typeof mood !== "string" || !mood.trim()) {
+      return res.status(400).json({ error: "Missing or invalid `mood` in request body." });
     }
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages,
+
+    // Use whichever method openai supports (v3 vs. v4). 
+    // Both v3 and v4 clients expose createChatCompletion with the same signature.
+    const response = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are an assistant that crafts detailed prompts for DALL·E. " +
+            "When given a single-word mood (e.g. \"serene\", \"euphoric\", \"nostalgic\"), " +
+            "you must produce one concise but vivid DALL·E prompt that visually conveys that mood.",
+        },
+        {
+          role: "user",
+          content: `Mood: ${mood.trim()}`,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 100,
     });
-    const reply = completion.choices[0]?.message?.content || "";
-    res.json({ reply });
-  } catch (error) {
-    handleOpenAIError(res, error, "chat");
+
+    // The choice format is identical in v3 and v4:
+    const dallePrompt = response.data.choices[0].message.content.trim();
+    return res.json({ dallePrompt });
+  } catch (err) {
+    console.error("Error in /api/generate-prompt:", err?.response?.data || err.message);
+    return res.status(500).json({ error: "Failed to generate a DALL·E prompt." });
   }
 });
 
-// Mood extraction endpoint
-app.post('/api/mood', async (req, res) => {
+// -------------------------------------------------------------------------------------
+// Example Endpoint #2: Detect top emotion from text via Hugging Face
+// -------------------------------------------------------------------------------------
+app.post("/api/detect-mood", async (req, res) => {
   try {
-    const { userMessages } = req.body;
-    if (!userMessages || !Array.isArray(userMessages)) {
-      return res.status(400).json({ error: 'Invalid input: userMessages must be an array.' });
+    const { text } = req.body;
+    if (typeof text !== "string" || !text.trim()) {
+      return res.status(400).json({ error: "Missing or invalid `text` in request body." });
     }
-    const moodPrompt = [
+
+    if (!process.env.HF_TOKEN) {
+      return res.status(500).json({ error: "HF_TOKEN is not set in .env." });
+    }
+
+    const hfResponse = await axios.post(
+      "https://api-inference.huggingface.co/models/j-hartmann/emotion-english-distilroberta-base",
+      { inputs: text.trim() },
       {
-        role: 'system',
-        content:
-          "You are a mood detection assistant. Given only the USER's messages from a conversation, determine the user's overall mood. Reply with a single word: happy, sad, excited, or neutral.",
-      },
-      ...userMessages.map((msg) => ({
-        role: 'user',
-        content: msg.content,
-      })),
-    ];
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: moodPrompt,
-    });
-    const mood = completion.choices[0]?.message?.content?.trim().toLowerCase() || "neutral";
-    res.json({ mood });
-  } catch (error) {
-    handleOpenAIError(res, error, "mood");
+        headers: {
+          Authorization: `Bearer ${process.env.HF_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const emotions = hfResponse.data[0];
+    const topEmotion = emotions.reduce((best, curr) =>
+      curr.score > best.score ? curr : best
+    );
+
+    return res.json({ mood: topEmotion.label, scores: emotions });
+  } catch (err) {
+    console.error("Mood detection error:", err?.response?.data || err.message);
+    return res.status(500).json({ error: "Failed to detect mood from text." });
   }
 });
 
-// Image generation endpoint
-app.post('/api/generate-image', async (req, res) => {
-  try {
-    const { prompt } = req.body;
-    if (!prompt || typeof prompt !== "string") {
-      return res.status(400).json({ error: 'Invalid input: prompt must be a string.' });
-    }
-    const response = await openai.images.generate({
-      prompt,
-      n: 1,
-      size: '512x512',
-      model: 'dall-e-2'
-    });
-    const images = response.data.map(img => img.url);
-    res.json({ images });
-  } catch (error) {
-    handleOpenAIError(res, error, "generate-image");
-  }
+// -------------------------------------------------------------------------------------
+// Health Check
+// -------------------------------------------------------------------------------------
+app.get("/api/ping", (_req, res) => {
+  res.json({ pong: true });
 });
 
+// -------------------------------------------------------------------------------------
+// Start server
+// -------------------------------------------------------------------------------------
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  if (!process.env.OPENAI_API_KEY) {
-    console.error("WARNING: OPENAI_API_KEY is not set! The API will not work.");
-  }
-  console.log(`OpenAI backend running on port ${PORT}`);
+  console.log(`✅ Backend listening on port ${PORT}`);
 });

@@ -1,90 +1,126 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 
 const BACKEND_URL = "http://localhost:5000";
 
-const moodPrompts = {
-  happy: "A vibrant, colorful scene with sunshine and smiling people, digital art",
-  sad: "A rainy day, blue tones, a person looking thoughtful, digital painting",
-  excited: "A dynamic celebration with fireworks, bright lights, digital art",
-  neutral: "A calm landscape with soft lighting and pastel colors, digital painting",
-};
-
-function SocialMediaScreen({ mood }) {
-  const [images, setImages] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function SocialMediaFeed({ userInput }) {
+  const [feed, setFeed] = useState([]); // {prompt, image}
+  const [mood, setMood] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    async function fetchImages() {
-      setLoading(true);
-      setError(null);
-      setImages([]);
-      const prompt = moodPrompts[mood] || moodPrompts["neutral"];
-      try {
-        const response = await axios.post(`${BACKEND_URL}/api/generate-image`, {
-          prompt,
-        });
-        setImages(response.data.images || []);
-      } catch (e) {
-        setImages([]);
-        setError(
-          e.response && e.response.data && e.response.data.error
-            ? e.response.data.error
-            : "Image generation failed."
-        );
-      }
-      setLoading(false);
+  // Step 1: Extract mood from user input
+  async function detectMood(text) {
+    try {
+      const res = await axios.post(`${BACKEND_URL}/api/extract-mood`, { text });
+      return res.data.mood;
+    } catch (e) {
+      return "neutral";
     }
-    fetchImages();
-  }, [mood]);
+  }
+
+  // Step 2: Generate creative prompt for that mood
+  async function getPrompt(mood) {
+    const res = await axios.post(`${BACKEND_URL}/api/generate-prompt`, { mood });
+    return res.data.prompt;
+  }
+
+  // Step 3: Generate image from that prompt
+  async function getImage(prompt) {
+    const res = await axios.post(`${BACKEND_URL}/api/generate-image`, { prompt });
+    return res.data.images[0];
+  }
+
+  // Generate the feed (1 post, can repeat for more)
+  async function handleGenerateFeed() {
+    setLoading(true);
+    setError(null);
+    setFeed([]);
+    try {
+      // 1. Extract mood from user input (or use passed-in mood)
+      const extractedMood = userInput ? await detectMood(userInput) : "neutral";
+      setMood(extractedMood);
+
+      // 2. Generate prompt
+      const prompt = await getPrompt(extractedMood);
+
+      // 3. Generate image
+      const image = await getImage(prompt);
+
+      setFeed([{ prompt, image }]);
+    } catch (e) {
+      setError("Failed to generate feed. Try again.");
+    }
+    setLoading(false);
+  }
 
   return (
-    <div style={{ maxWidth: 700, margin: "50px auto", textAlign: "center" }}>
-      <h2>Here's your mood feed!</h2>
-      {error && (
-        <div style={{ color: "red", margin: 16 }}>{error}</div>
-      )}
-      {loading ? (
-        <p>Generating images...</p>
-      ) : (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            flexWrap: "wrap",
-            gap: 20,
-          }}
-        >
-          {images.length > 0 ? (
-            images.map((img, idx) => (
-              <div
-                key={idx}
+    <div style={{
+      maxWidth: 600,
+      margin: "40px auto",
+      padding: 24,
+      background: "#fafafa",
+      borderRadius: 16,
+      boxShadow: "0 3px 12px rgba(0,0,0,0.08)"
+    }}>
+      <h2 style={{ textAlign: "center", marginBottom: 20 }}>
+        Social Mood Feed
+      </h2>
+      <button
+        onClick={handleGenerateFeed}
+        disabled={loading}
+        style={{
+          background: "#333",
+          color: "#fff",
+          fontSize: 18,
+          border: "none",
+          borderRadius: 8,
+          padding: "12px 24px",
+          margin: "0 auto 30px auto",
+          display: "block",
+          cursor: loading ? "wait" : "pointer"
+        }}
+      >
+        {loading ? "Generating..." : "Generate Mood Feed"}
+      </button>
+      {error && <div style={{ color: "red", margin: 16 }}>{error}</div>}
+      {mood && <div style={{ textAlign: "center", marginBottom: 12 }}>Detected mood: <b>{mood}</b></div>}
+      {feed.length > 0 && (
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "24px"
+        }}>
+          {feed.map((post, idx) => (
+            <div key={idx} style={{
+              background: "#fff",
+              borderRadius: 12,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+              padding: 18,
+              width: 350
+            }}>
+              <img
+                src={post.image}
+                alt="Mood post"
                 style={{
-                  border: "1px solid #ddd",
+                  width: "100%",
                   borderRadius: 10,
-                  padding: 10,
+                  objectFit: "cover",
+                  aspectRatio: "1/1",
+                  marginBottom: 14
                 }}
-              >
-                <img
-                  src={img}
-                  alt={`mood img ${idx}`}
-                  style={{
-                    width: 200,
-                    height: 200,
-                    objectFit: "cover",
-                    borderRadius: 10,
-                  }}
-                />
+              />
+              <div style={{ color: "#222", fontWeight: 500, fontSize: 16, marginBottom: 8 }}>
+                {post.prompt}
               </div>
-            ))
-          ) : (
-            <div style={{ color: "#666" }}>No images generated.</div>
-          )}
+              <div style={{ color: "#999", fontSize: 13 }}>
+                #{mood}vibes
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
   );
 }
-
-export default SocialMediaScreen;
