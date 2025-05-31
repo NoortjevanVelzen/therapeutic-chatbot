@@ -6,64 +6,62 @@ import axios from "axios";
 const BACKEND_URL = "http://localhost:5000";
 
 export default function SocialMediaFeed({ userInput }) {
-  // We’ll treat each “feed item” as just a { prompt } for now,
-  // because the backend only returns a text prompt.
-  const [feed, setFeed] = useState([]); 
-  const [mood, setMood] = useState(null);
+  const [post, setPost] = useState(null);   // { imageUrl, prompt, mood }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Step 1: Extract mood from user input
-  //   ➜ Backend route is POST /api/detect-mood { text: string }
-  //   Response is { mood: "<top-emotion>" }
+  // 1) Extract mood from user input
   async function detectMood(text) {
     try {
       const res = await axios.post(`${BACKEND_URL}/api/detect-mood`, { text });
       return res.data.mood;
     } catch (e) {
-      // If anything goes wrong, default to "neutral"
       return "neutral";
     }
   }
 
-  // Step 2: Generate a DALL·E prompt based on that mood
-  //   ➜ Backend route is POST /api/generate-prompt { mood: string }
-  //   Response is { dallePrompt: "<text prompt>" }
+  // 2) Generate a DALL·E prompt from that mood
   async function getPrompt(mood) {
-    try {
-      const res = await axios.post(`${BACKEND_URL}/api/generate-prompt`, { mood });
-      return res.data.dallePrompt;
-    } catch (e) {
-      throw new Error("Prompt generation failed");
-    }
+    const res = await axios.post(`${BACKEND_URL}/api/generate-prompt`, { mood });
+    return res.data.dallePrompt;
   }
 
-  // When the user clicks “Generate Mood Feed,” we do:
-  //   1) detectMood(userInput)
-  //   2) getPrompt(detectedMood)
-  //   3) setFeed([{ prompt }]) so the UI can render it
-  async function handleGenerateFeed() {
+  // 3) Generate an image from that prompt
+  async function getImage(prompt) {
+    const res = await axios.post(`${BACKEND_URL}/api/generate-image`, { prompt });
+    // Assume backend returns { images: [ "https://…url…" ] }
+    return res.data.images[0];
+  }
+
+  // Called when you click “Generate Mood Feed”
+  const handleGenerateFeed = async () => {
     setLoading(true);
     setError(null);
-    setFeed([]);
-    
-    try {
-      // 1. Determine mood (or fall back to "neutral" if no userInput)
-      const extractedMood = userInput ? await detectMood(userInput) : "neutral";
-      setMood(extractedMood);
+    setPost(null);
 
-      // 2. Generate a DALL·E prompt for that mood
+    try {
+      // If userInput is empty, default mood to “neutral”
+      const extractedMood = userInput ? await detectMood(userInput) : "neutral";
+
+      // Create a text prompt based on that mood:
       const promptText = await getPrompt(extractedMood);
 
-      // 3. Update the “feed” with one item that has { prompt }
-      setFeed([{ prompt: promptText }]);
+      // Generate an AI image from the prompt:
+      const imageUrl = await getImage(promptText);
+
+      // Build the “post” object:
+      setPost({
+        mood: extractedMood,
+        prompt: promptText,
+        imageUrl,
+      });
     } catch (e) {
-      setError("Failed to generate feed. Try again.");
-      console.error(e);
+      console.error("Error generating post:", e);
+      setError("Failed to generate feed. Please try again.");
     }
 
     setLoading(false);
-  }
+  };
 
   return (
     <div
@@ -98,48 +96,79 @@ export default function SocialMediaFeed({ userInput }) {
 
       {error && <div style={{ color: "red", margin: 16 }}>{error}</div>}
 
-      {mood && (
-        <div style={{ textAlign: "center", marginBottom: 12 }}>
-          Detected mood: <b>{mood}</b>
-        </div>
-      )}
-
-      {feed.length > 0 && (
+      {post && (
         <div
           style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "24px",
+            background: "#fff",
+            borderRadius: 12,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            overflow: "hidden",
           }}
         >
-          {feed.map((post, idx) => (
+          {/* ─── Header (Avatar + Username) ─── */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              padding: "12px 16px",
+              borderBottom: "1px solid #eee",
+            }}
+          >
             <div
-              key={idx}
               style={{
-                background: "#fff",
-                borderRadius: 12,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
-                padding: 18,
-                width: 350,
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                backgroundImage: `url("https://i.pravatar.cc/150?img=12")`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                marginRight: 12,
               }}
-            >
-              {/* Since there’s no image URL yet, we simply render the prompt text */}
-              <div
-                style={{
-                  color: "#222",
-                  fontWeight: 500,
-                  fontSize: 16,
-                  marginBottom: 8,
-                }}
-              >
-                {post.prompt}
-              </div>
-              <div style={{ color: "#999", fontSize: 13 }}>
-                #{mood}vibes
-              </div>
+            />
+            <span style={{ fontWeight: 600, fontSize: 16 }}>AI_Generator</span>
+          </div>
+
+          {/* ─── Image ─── */}
+          <img
+            src={post.imageUrl}
+            alt="AI generated"
+            style={{
+              width: "100%",
+              display: "block",
+              objectFit: "cover",
+              maxHeight: 500,
+            }}
+          />
+
+          {/* ─── Icon Bar (Like / Comment / Share) ─── */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              padding: "8px 16px",
+              gap: 16,
+            }}
+          >
+            {/* Simple placeholders for like/comment/share icons */}
+            <span role="img" aria-label="like" style={{ fontSize: 24, cursor: "pointer" }}>
+              ❤️
+            </span>
+            <span role="img" aria-label="comment" style={{ fontSize: 24, cursor: "pointer" }}>
+              💬
+            </span>
+            <span role="img" aria-label="share" style={{ fontSize: 24, cursor: "pointer" }}>
+              📤
+            </span>
+          </div>
+
+          {/* ─── Caption (Prompt or Hashtags) ─── */}
+          <div style={{ padding: "0 16px 16px 16px" }}>
+            <span style={{ fontWeight: 600, marginRight: 8 }}>AI_Generator</span>
+            <span style={{ color: "#333" }}>{post.prompt}</span>
+            <div style={{ marginTop: 8, color: "#999", fontSize: 14 }}>
+              #{post.mood}vibes
             </div>
-          ))}
+          </div>
         </div>
       )}
     </div>
