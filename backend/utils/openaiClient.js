@@ -25,7 +25,7 @@ exports.openaiImage = async (prompt) => {
   const response = await axios.post(
     'https://api.openai.com/v1/images/generations',
     {
-      model: 'dall-e-3',
+      model: 'dall-e-2',
       prompt,
       n: 1,
       size: '512x512',
