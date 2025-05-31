@@ -262,15 +262,9 @@ app.post("/api/chat", async (req, res) => {
         .json({ error: "No user message found to respond to." });
     }
 
-    // ══ Option A: Stub / echo behavior (for testing) ══
-    // Simply echo back what the user said:
-    const assistantReply = `You said: "${lastUserMsg}"`;
-    return res.json({ reply: assistantReply });
-
-    // ══ Option B: Call OpenAI’s chat endpoint ══
+       // ══ Option B: Call OpenAI’s chat endpoint ══
     // Uncomment below, and comment out the stub above, if you want a real LLM response:
-    /*
-    let chatResponse;
+        let chatResponse;
     if (isV4 && typeof openai.createChatCompletion === "function") {
       chatResponse = await openai.createChatCompletion({
         model: "gpt-3.5-turbo",
@@ -294,7 +288,6 @@ app.post("/api/chat", async (req, res) => {
       return res.json({ reply: assistantReply });
     }
     throw new Error("No supported createChatCompletion method found on the OpenAI client.");
-    */
   } catch (err) {
     console.error("Error in /api/chat:", err?.response?.data || err.message);
     return res.status(500).json({ error: "Chat endpoint failed." });
