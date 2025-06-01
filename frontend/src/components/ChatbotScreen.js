@@ -7,7 +7,7 @@ const BACKEND_URL = "http://localhost:5000";
 
 function ChatbotScreen({ onFinish }) {
   const [messages, setMessages] = useState([
-    { role: "assistant", content: "Hi! How are you feeling today?" },
+    { role: "assistant", content: "Hi, I’m your therapeutic chatbot! Take a moment before you scroll. You can tell me how you’re feeling, and I’ll adjust your social media feed to support your mental balance. Whether you’re stressed, calm, or cheerful, I’m here to help your online space reflect what you need most. So, how are you doing today?" },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
