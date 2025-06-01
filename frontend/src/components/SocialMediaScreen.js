@@ -10,8 +10,7 @@ function generatePromptForMood(mood) {
   if (!mood || typeof mood !== "string" || mood.trim() === "") {
     mood = "neutral";
   }
-  return `A stylized photo social media post designed to support the mood '${mood}':
-
+  return `A stylized photo social media post designed to support the mood '${mood}'. GENERATE EITHER ONE OF THE FOLLOWING OPTIONS:
 – If negative (anxious, sad, angry, overwhelmed): show a peaceful scene like gentle ocean waves, soft pastel colors, and a minimal layout with a calm tone.
 – If neutral: show an uplifting article preview or news snippet with balanced composition, soft lighting, and a hint of curiosity or inspiration (like a sunrise or a glowing headline).
 – If positive: display a cheerful, vibrant post celebrating joy—bright colors, confetti, smiling icons, or a celebration scene.
