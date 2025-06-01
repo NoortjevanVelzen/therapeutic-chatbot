@@ -11,7 +11,11 @@ function ChatbotScreen({ onFinish }) {
     {
       role: "assistant",
       content:
-        "Hi, I’m your therapeutic chatbot! Take a moment before you scroll. You can tell me how you’re feeling, and I’ll adjust your social media feed to make sure that you feel mentally balanced. \n So, how are you doing today?",
+        "I’ll adjust your feed to match: soothing content to help you relax, inspiring stories and light news when you're feeling neutral, and joyful posts that celebrate your happiness.",
+    },
+    {
+      role: "assistant",
+      content: "So, tell me, how you're feeling?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -75,17 +79,29 @@ function ChatbotScreen({ onFinish }) {
 
   return (
     <div className={styles.container}>
+      <div className={styles.introBox}>
+        <h2 className={styles.introTitle}>Welcome to your Therapeutic Chatbot</h2>
+        <p className={styles.introText}>
+          This chatbot helps you reflect on how you're feeling and tailors your social media feed to support your emotional wellbeing. Just start typing your thoughts, and when you're ready, click to finish and receive your personalized wellbeing feed.
+        </p>
+      </div>
+
       <div className={styles.chatBox}>
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            className={`${styles.message} ${
-              msg.role === "user" ? styles.user : styles.assistant
-            }`}
-          >
+            className={`${styles.message} ${msg.role === "user" ? styles.user : styles.assistant}`}
+        >
+            {msg.role === "assistant" && (
+              <img
+                src="/chatbot-avatar.png"
+                alt="Chatbot"
+                className={styles.avatarSmall}
+              />
+            )}
             <span className={styles.bubble}>{msg.content}</span>
           </div>
-        ))}
+    ))}
 
         <div className={styles.inputContainer}>
           <input
@@ -110,7 +126,7 @@ function ChatbotScreen({ onFinish }) {
           className={styles.finishButton}
           disabled={loading || !canFinish}
         >
-          {loading ? "Analyzing mood..." : "Finish Chat & Show Mood Feed"}
+          {loading ? "Analyzing mood..." : "Create My Mood Feed"}
         </button>
 
         {error && <div className={styles.error}>{error}</div>}
@@ -120,3 +136,4 @@ function ChatbotScreen({ onFinish }) {
 }
 
 export default ChatbotScreen;
+
