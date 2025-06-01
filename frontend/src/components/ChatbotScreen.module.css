@@ -1,0 +1,101 @@
+.container {
+  max-width: 400px;
+  margin: 50px auto;
+  text-align: left;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.chatBox {
+  border: 1px solid #ccc;
+  padding: 20px;
+  border-radius: 12px;
+  background: #fdfdfd;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.message {
+  margin: 10px 0;
+  display: flex;
+}
+
+.assistant {
+  justify-content: flex-start;
+}
+
+.user {
+  justify-content: flex-end;
+}
+
+.bubble {
+  display: inline-block;
+  background-color: #f1f1f1;
+  color: #333;
+  padding: 10px 16px;
+  border-radius: 18px;
+  max-width: 80%;
+  word-wrap: break-word;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.user .bubble {
+  background-color: #aee;
+  color: #003344;
+}
+
+.inputContainer {
+  display: flex;
+  margin-top: 20px;
+}
+
+.inputField {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  font-size: 16px;
+}
+
+.sendButton {
+  margin-left: 8px;
+  background: #35b;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.finishButton {
+  width: 100%;
+  margin-top: 20px;
+  background: #2d87f0;
+  color: white;
+  padding: 12px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: background 0.3s ease;
+}
+
+.finishButton:hover {
+  background: #1a6ed8;
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

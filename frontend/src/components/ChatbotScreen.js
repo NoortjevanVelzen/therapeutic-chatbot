@@ -2,12 +2,17 @@
 
 import React, { useState } from "react";
 import axios from "axios";
+import styles from "./ChatbotScreen.module.css";
 
 const BACKEND_URL = "http://localhost:5000";
 
 function ChatbotScreen({ onFinish }) {
   const [messages, setMessages] = useState([
-    { role: "assistant", content: "Hi, I’m your therapeutic chatbot! Take a moment before you scroll. You can tell me how you’re feeling, and I’ll adjust your social media feed to support your mental balance. Whether you’re stressed, calm, or cheerful, I’m here to help your online space reflect what you need most. So, how are you doing today?" },
+    {
+      role: "assistant",
+      content:
+        "Hi, I’m your therapeutic chatbot! Take a moment before you scroll. You can tell me how you’re feeling, and I’ll adjust your social media feed to support your mental balance. Whether you’re stressed, calm, or cheerful, I’m here to help your online space reflect what you need most. So, how are you doing today?",
+    },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,9 +45,7 @@ function ChatbotScreen({ onFinish }) {
           content: "Sorry, there was a problem. Please try again.",
         },
       ]);
-      setError(
-        e.response?.data?.error || "Server error"
-      );
+      setError(e.response?.data?.error || "Server error");
     }
     setLoading(false);
   };
@@ -58,7 +61,9 @@ function ChatbotScreen({ onFinish }) {
     }
 
     try {
-      const response = await axios.post(`${BACKEND_URL}/api/mood`, { userMessages });
+      const response = await axios.post(`${BACKEND_URL}/api/mood`, {
+        userMessages,
+      });
       const backendMood = response.data.mood?.toLowerCase() || "neutral";
       onFinish(backendMood);
     } catch (e) {
@@ -69,72 +74,46 @@ function ChatbotScreen({ onFinish }) {
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: "50px auto", textAlign: "left" }}>
-      <div style={{ border: "1px solid #ccc", padding: 20, borderRadius: 10 }}>
+    <div className={styles.container}>
+      <div className={styles.chatBox}>
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            style={{
-              textAlign: msg.role === "user" ? "right" : "left",
-              margin: "10px 0",
-            }}
+            className={`${styles.message} ${
+              msg.role === "user" ? styles.user : styles.assistant
+            }`}
           >
-            <span
-              style={{
-                display: "inline-block",
-                background: msg.role === "assistant" ? "#eee" : "#aee",
-                borderRadius: 10,
-                padding: "10px 16px",
-              }}
-            >
-              {msg.content}
-            </span>
+            <span className={styles.bubble}>{msg.content}</span>
           </div>
         ))}
-        <div style={{ marginTop: 20 }}>
+
+        <div className={styles.inputContainer}>
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            style={{
-              width: "73%",
-              fontSize: 16,
-              padding: 8,
-              borderRadius: 5,
-              border: "1px solid #ddd",
-            }}
+            className={styles.inputField}
             placeholder="Type your feeling..."
             disabled={loading}
           />
           <button
             onClick={sendMessage}
-            style={{ fontSize: 16, marginLeft: 8 }}
+            className={styles.sendButton}
             disabled={loading || !input.trim()}
           >
             Send
           </button>
         </div>
+
         <button
           onClick={handleFinish}
-          style={{
-            marginTop: 20,
-            fontSize: 16,
-            width: "100%",
-            background: "#35b",
-            color: "#fff",
-            border: "none",
-            borderRadius: 5,
-            padding: 10,
-          }}
+          className={styles.finishButton}
           disabled={loading || !canFinish}
         >
           {loading ? "Analyzing mood..." : "Finish Chat & Show Mood Feed"}
         </button>
-        {error && (
-          <div style={{ color: "red", marginTop: 10, fontSize: 14 }}>
-            {error}
-          </div>
-        )}
+
+        {error && <div className={styles.error}>{error}</div>}
       </div>
     </div>
   );
