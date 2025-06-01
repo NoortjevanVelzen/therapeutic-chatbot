@@ -126,7 +126,7 @@ function ChatbotScreen({ onFinish }) {
           className={styles.finishButton}
           disabled={loading || !canFinish}
         >
-          {loading ? "Analyzing mood..." : "Create My Mood Feed"}
+          {loading ? "Analyzing mood..." : "Create My Wellbeing Feed"}
         </button>
 
         {error && <div className={styles.error}>{error}</div>}

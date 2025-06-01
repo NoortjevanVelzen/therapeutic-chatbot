@@ -92,8 +92,8 @@ app.post('/api/generate-image', async (req, res) => {
     const response = await openai.images.generate({
       prompt,
       n: 1,
-      size: '512x512',
-      model: 'dall-e-2'
+      size: '1024x1024',
+      model: 'dall-e-3'
     });
     const images = response.data.map(img => img.url);
     res.json({ images });

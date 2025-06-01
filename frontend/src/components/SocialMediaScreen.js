@@ -10,23 +10,14 @@ function generatePromptForMood(mood) {
   if (!mood || typeof mood !== "string" || mood.trim() === "") {
     mood = "neutral";
   }
-  return `Create a square portrait of a person expressing the opposite of the mood “${mood}” (except if it’s positive, then match it):
+  return `“A stylized photo instagram post (without the UI) designed to support the mood ‘${mood}’:
 
-- **Negative (anxious, sad, angry, overwhelmed):**  
-  • Depict the person calm or confident—soft smile, relaxed shoulders, gentle backlighting or a warm glow. Add a calming symbol.
+– If negative (anxious, sad, angry, overwhelmed): show a peaceful scene like gentle ocean waves, soft pastel colors, and a minimal layout with a calm tone.
+– If neutral: show an uplifting article preview or news snippet with balanced composition, soft lighting, and a hint of curiosity or inspiration (like a sunrise or a glowing headline).
+– If positive: display a cheerful, vibrant post celebrating joy—bright colors, confetti, smiling icons, or a celebration scene.
 
-- **Neutral/Contemplative:**  
-  • Show the person subtly uplifted—slight smile, bright eyes, soft highlights. Add a symbol of warmth. 
-
-- **Positive (happy, hopeful, loving):**  
-  • Portray the person aligned with that positivity—open smile, warm lighting. Add a symbol of joy
-
-**Requirements:**  
-• Realistic style with varied shading (deeper shadows to show stress relief, soft highlights for comfort).  
-• Keep backgrounds minimal.  
-• Use one muted color accent (e.g., pale yellow or soft blue).  
-• No text.
-
+Requirements:
+• Clean layout, subtle shadows, realistic or semi-realistic visual style.
  `;
 }
 
