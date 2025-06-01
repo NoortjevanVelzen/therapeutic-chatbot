@@ -19,7 +19,7 @@ function generatePromptForMood(mood) {
   • Show the person subtly uplifted—slight smile, bright eyes, soft highlights. Add a symbol of warmth. 
 
 - **Positive (happy, hopeful, loving):**  
-  • Portray the person aligned with that positivity—open smile, warm golden-hour lighting. Add a symbol of joy
+  • Portray the person aligned with that positivity—open smile, warm lighting. Add a symbol of joy
 
 **Requirements:**  
 • Realistic style with varied shading (deeper shadows to show stress relief, soft highlights for comfort).  
