@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import styles from "./ChatbotScreen.module.css";
 
-const BACKEND_URL = "http://localhost:5000";
+const BACKEND_URL = "https://therapeutic-chatbot-2.onrender.com";
 
 function ChatbotScreen({ onFinish }) {
   const [messages, setMessages] = useState([
