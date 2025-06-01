@@ -1,0 +1,77 @@
+.homeContainer {
+  min-height: 100vh;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  border-top: 1px solid #dbdbdb;
+}
+
+.avatar {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.6s ease;
+  margin-bottom: 2rem;
+  border: 1px solid #dbdbdb;
+}
+
+.title {
+  font-size: 1.75rem;
+  color: #262626;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #8e8e8e;
+  margin-bottom: 2rem;
+}
+
+.startButton {
+  background-color: #0095f6;
+  color: white;
+  font-size: 1rem;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.startButton:hover {
+  background-color: #007ccf;
+  transform: scale(1.03);
+}
+
+@media (max-width: 480px) {
+  .avatar {
+    width: 140px;
+    height: 140px;
+  }
+
+  .startButton {
+    width: 100%;
+    font-size: 0.95rem;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
