@@ -5,7 +5,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 dotenv.config();
 
-const openaiRoutes = require("./openaiController");
+const openaiRoutes = require("./controllers/openaiController");
 
 const app = express();
 
