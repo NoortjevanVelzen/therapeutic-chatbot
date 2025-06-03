@@ -2,11 +2,14 @@
 
 import React, { useState } from "react";
 import axios from "axios";
+import { useMood } from "../contexts/MoodContext";
 import styles from "./ChatbotScreen.module.css";
 
 const BACKEND_URL = "https://therapeutic-chatbot-2.onrender.com";
 
-function ChatbotScreen({ onFinish }) {
+function ChatbotScreen({ onNext }) {
+  const { setMood } = useMood();
+
   const [messages, setMessages] = useState([
     {
       role: "assistant",
@@ -28,6 +31,7 @@ function ChatbotScreen({ onFinish }) {
   const sendMessage = async () => {
     if (!input.trim()) return;
     setError(null);
+
     const newMessages = [...messages, { role: "user", content: input }];
     setMessages(newMessages);
     setInput("");
@@ -51,6 +55,7 @@ function ChatbotScreen({ onFinish }) {
       ]);
       setError(e.response?.data?.error || "Server error");
     }
+
     setLoading(false);
   };
 
@@ -59,8 +64,9 @@ function ChatbotScreen({ onFinish }) {
     setError(null);
 
     if (!canFinish) {
-      onFinish("neutral");
+      setMood("neutral");
       setLoading(false);
+      onNext();
       return;
     }
 
@@ -69,12 +75,14 @@ function ChatbotScreen({ onFinish }) {
         userMessages,
       });
       const backendMood = response.data.mood?.toLowerCase() || "neutral";
-      onFinish(backendMood);
+      setMood(backendMood);
     } catch (e) {
       setError(e.response?.data?.error || "Server error");
-      onFinish("neutral");
+      setMood("neutral");
     }
+
     setLoading(false);
+    onNext();
   };
 
   return (
@@ -82,7 +90,10 @@ function ChatbotScreen({ onFinish }) {
       <div className={styles.introBox}>
         <h2 className={styles.introTitle}>Welcome to your Therapeutic Chatbot</h2>
         <p className={styles.introText}>
-          This chatbot helps you reflect on how you're feeling and tailors your social media feed to support your emotional wellbeing. Just start typing your thoughts, and when you're ready, click to finish and receive your personalized wellbeing feed.
+          This chatbot helps you reflect on how you're feeling and tailors your
+          social media feed to support your emotional wellbeing. Just start
+          typing your thoughts, and when you're ready, click to finish and
+          receive your personalized wellbeing feed.
         </p>
       </div>
 
@@ -90,8 +101,10 @@ function ChatbotScreen({ onFinish }) {
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            className={`${styles.message} ${msg.role === "user" ? styles.user : styles.assistant}`}
-        >
+            className={`${styles.message} ${
+              msg.role === "user" ? styles.user : styles.assistant
+            }`}
+          >
             {msg.role === "assistant" && (
               <img
                 src="/chatbot-avatar.png"
@@ -101,7 +114,7 @@ function ChatbotScreen({ onFinish }) {
             )}
             <span className={styles.bubble}>{msg.content}</span>
           </div>
-    ))}
+        ))}
 
         <div className={styles.inputContainer}>
           <input
@@ -136,4 +149,3 @@ function ChatbotScreen({ onFinish }) {
 }
 
 export default ChatbotScreen;
-
