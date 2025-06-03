@@ -1,3 +1,5 @@
+// src/components/MoodDetector.js
+
 import React, { useState } from "react";
 import axios from "axios";
 
@@ -12,7 +14,7 @@ export default function MoodDetector() {
     setLoading(true);
     setResult(null);
     try {
-      const res = await axios.post(`${BACKEND_URL}/api/extract-mood`, { text: input });
+      const res = await axios.post(`${BACKEND_URL}/api/mood`, { text: input });
       setResult(res.data);
     } catch (e) {
       setResult({ error: "Detection failed." });

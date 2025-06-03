@@ -1,10 +1,9 @@
 // src/components/SocialMediaScreen.js
 
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { useMood } from "../contexts/MoodContext";
+import api from "../api";
 import styles from "./SocialMediaScreen.module.css";
-
-const BACKEND_URL = "https://therapeutic-chatbot-2.onrender.com";
 
 function generatePromptForMood(mood) {
   if (!mood || typeof mood !== "string" || mood.trim() === "") {
@@ -19,13 +18,16 @@ Requirements:
 • Clean layout, subtle shadows, realistic or semi-realistic visual style.`;
 }
 
-function SocialMediaScreen({ mood }) {
+function SocialMediaScreen() {
+  // 1) Read `mood` from context instead of via props
+  const { mood } = useMood();
+
   const [imageUrl, setImageUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    console.log("Received mood from backend:", mood);
+    console.log("Received mood from context:", mood);
   }, [mood]);
 
   useEffect(() => {
@@ -33,16 +35,16 @@ function SocialMediaScreen({ mood }) {
       setLoading(true);
       setError(null);
       setImageUrl(null);
+
       const prompt = generatePromptForMood(mood);
       try {
-        const response = await axios.post(`${BACKEND_URL}/api/generate-image`, {
-          prompt,
-        });
-        setImageUrl(response.data.imageUrl || null);
+        const url = await api.generateImage(prompt);
+        setImageUrl(url || null);
       } catch (e) {
         setImageUrl(null);
         setError(e.response?.data?.error || "Image generation failed.");
       }
+
       setLoading(false);
     }
     fetchImage();
@@ -64,40 +66,34 @@ function SocialMediaScreen({ mood }) {
 
       {loading ? (
         <p className={styles.loading}>Generating image...</p>
-      ) : (
-        imageUrl ? (
-          <div className={styles.imageCard}>
-            <div className={styles.imageHeader}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <img
-                  src="/chatbot-avatar.png"
-                  alt="avatar"
-                  className={styles.avatarSmall}
-                />
-                <span className={styles.username}>AI_Generator</span>
-              </div>
-              <span className={styles.imageHeaderRight}>⋯</span>
+      ) : imageUrl ? (
+        <div className={styles.imageCard}>
+          <div className={styles.imageHeader}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <img
+                src="/chatbot-avatar.png"
+                alt="avatar"
+                className={styles.avatarSmall}
+              />
+              <span className={styles.username}>AI_Generator</span>
             </div>
-            <img
-              src={imageUrl}
-              alt={`mood img`}
-              className={styles.image}
-            />
-            <div className={styles.reactions}>
-              <span>❤️</span>
-              <span>💬</span>
-              <span>📤</span>
-            </div>
-            <div className={styles.caption}>
-              <strong>AI_Generator</strong>
-              This post was created to gently shift you into a better headspace.
-              <div className={styles.captionTag}>#{mood}vibes</div>
-            </div>
-            <div className={styles.timestamp}>2 HOURS AGO</div>
+            <span className={styles.imageHeaderRight}>⋯</span>
           </div>
-        ) : (
-          <div className={styles.noImages}>No image generated.</div>
-        )
+          <img src={imageUrl} alt={`mood img`} className={styles.image} />
+          <div className={styles.reactions}>
+            <span>❤️</span>
+            <span>💬</span>
+            <span>📤</span>
+          </div>
+          <div className={styles.caption}>
+            <strong>AI_Generator</strong>
+            This post was created to gently shift you into a better headspace.
+            <div className={styles.captionTag}>#{mood}vibes</div>
+          </div>
+          <div className={styles.timestamp}>2 HOURS AGO</div>
+        </div>
+      ) : (
+        <div className={styles.noImages}>No image generated.</div>
       )}
     </div>
   );
