@@ -41,31 +41,50 @@ router.post("/chat", async (req, res) => {
 router.post("/mood", async (req, res) => {
   try {
     const { userMessages } = req.body;
-    if (!Array.isArray(userMessages) || userMessages.length === 0) return res.json({ mood: "neutral" });
+    // If there are no user messages, immediately return "neutral"
+    if (!Array.isArray(userMessages) || userMessages.length === 0) {
+      return res.json({ mood: "neutral" });
+    }
 
+    // 1) Define exactly which single‐word moods are allowed
+    const validMoods = ["happy", "sad", "angry", "anxious", "neutral"];
+
+    // 2) Build a system prompt that tells GPT to pick ONE of those words
     const prompt = [
       {
         role: "system",
-        content: `You are a mood detection assistant. Pick one mood from the list and respond only with that mood.`
+        content: `You are a mood detection assistant. The only valid outputs are exactly one of the following words (no extras, no apologies, no sentences): ${validMoods
+          .map((m) => `"${m}"`)
+          .join(", ")}. If the user’s message does not clearly map to one of those, respond with "neutral".`
       },
-      ...userMessages.filter(msg => msg?.role === "user" && typeof msg.content === "string").map(msg => ({
-        role: "user",
-        content: msg.content
-      }))
+      // 3) Append only the user‐role messages, not any assistant lines
+      ...userMessages
+        .filter((msg) => msg.role === "user" && typeof msg.content === "string")
+        .map((msg) => ({ role: "user", content: msg.content }))
     ];
 
+    // 4) Call OpenAI with that very explicit prompt
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: prompt
     });
 
-    let mood = completion.choices[0]?.message?.content?.trim().toLowerCase() || "neutral";
+    // 5) Clean up what GPT returned (lowercase, strip non-letters)
+    let mood = completion.choices[0].message.content.trim().toLowerCase() || "neutral";
     mood = mood.replace(/[^a-z]/gi, "");
+
+    // 6) If GPT somehow returns something that isn’t in our list, fallback on "neutral"
+    if (!validMoods.includes(mood)) {
+      mood = "neutral";
+    }
+
+    // 7) Send back exactly one valid word
     res.json({ mood });
   } catch (error) {
     handleOpenAIError(res, error, "mood");
   }
 });
+
 
 // Image generation + Cloudinary upload
 router.post("/generate-image", async (req, res) => {

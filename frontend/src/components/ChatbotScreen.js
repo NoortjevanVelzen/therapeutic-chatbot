@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import useChatbot from "../hooks/useChatbot";
-import { useMood } from "../contexts/MoodContext";  // ← new import
+import { useMood } from "../contexts/MoodContext";  
 import styles from "./ChatbotScreen.module.css";
 
 function ChatbotScreen({ onNext }) {

@@ -49,6 +49,10 @@ export default function useChatbot(onFinish) {
   // 3) Helper to finish chat: filter only user messages, call detectMood, invoke onFinish
   const finishChat = async () => {
     const userMessages = messages.filter((m) => m.role === "user");
+    
+    // ← Add this log to see exactly what goes to the server:
+    console.log("🔍 [useChatbot] Sending to /api/mood:", userMessages);
+    
     if (userMessages.length === 0) {
       onFinish("neutral");
       return;
