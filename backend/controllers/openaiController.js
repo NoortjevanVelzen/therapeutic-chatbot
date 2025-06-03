@@ -84,10 +84,16 @@ router.post("/generate-image", async (req, res) => {
     const imageRes = await axios.get(imageUrl, { responseType: "arraybuffer" });
     const buffer = Buffer.from(imageRes.data, "binary");
 
-    const uploadStream = cloudinary.uploader.upload_stream({ resource_type: "image" }, (err, result) => {
-      if (err) return res.status(500).json({ error: "Upload to Cloudinary failed" });
-      res.json({ imageUrl: result.secure_url });
-    });
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { resource_type: "image" },
+      (err, result) => {
+        if (err) {
+          console.error("Cloudinary upload error:", err); // ← add this
+          return res.status(500).json({ error: "Upload to Cloudinary failed", details: err.message });
+        }
+        res.json({ imageUrl: result.secure_url });
+      }
+    );
 
     const readableStream = new stream.PassThrough();
     readableStream.end(buffer);
