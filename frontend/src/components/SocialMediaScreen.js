@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import styles from "./SocialMediaScreen.module.css";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const BACKEND_URL = "https://therapeutic-chatbot-2.onrender.com";
 
 function generatePromptForMood(mood) {
   if (!mood || typeof mood !== "string" || mood.trim() === "") {
