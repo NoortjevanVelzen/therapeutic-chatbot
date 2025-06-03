@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const BACKEND_URL = "https://therapeutic-chatbot-2.onrender.com";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 export default function MoodDetector() {
   const [input, setInput] = useState("");
