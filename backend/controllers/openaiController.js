@@ -47,7 +47,7 @@ router.post("/mood", async (req, res) => {
     }
 
     // 1) Define exactly which single‐word moods are allowed
-    const validMoods = ["happy", "sad", "angry", "anxious", "neutral"];
+    const validMoods = ['happy', 'sad', ' excited', 'hopeful', 'anxious', 'calm', 'angry', 'bored', 'stressed', 'frustrated', 'worried', 'content', 'overwhelmed', 'joyful', 'lonely', 'relaxed', 'irritable', 'enthusiastic', 'fearful', 'nostalgic', 'inspired', 'embarrassed', 'proud', 'disappointed', 'determined', 'confused', 'affectionate', 'resentful', 'cheerful', 'envious', 'peaceful', 'guilty', 'surprised', 'grateful', 'ashamed', 'affectionate', 'apprehensive', 'optimistic', 'pessimistic', 'insecure', 'curious', 'relieved', 'overwhelmed', 'affectionate', 'vindictive', 'remorseful', 'optimistic', 'apprehensive'];
 
     // 2) Build a system prompt that tells GPT to pick ONE of those words
     const prompt = [
