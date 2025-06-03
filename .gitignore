@@ -7,6 +7,9 @@
 node_modules/
 .cache/
 
+# ignore all node_modules (including caches) in the frontend
+frontend/node_modules/
+
 # testing
 /coverage
 
