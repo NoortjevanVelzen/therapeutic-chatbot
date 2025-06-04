@@ -10,12 +10,12 @@ function generatePromptForMood(mood) {
     mood = "neutral";
   }
   return `A stylized photo designed to support the mood '${mood}'. GENERATE EITHER ONE OF THE FOLLOWING OPTIONS:
-– If negative (anxious, sad, angry, overwhelmed): show a peaceful scene like gentle ocean waves, soft pastel colors, and a minimal layout with a calm tone.
-– If neutral: show an uplifting digital content preview or news snippet with balanced composition, soft lighting, and a hint of curiosity or inspiration (like a sunrise or a glowing headline).
-– If positive: display a cheerful, vibrant post celebrating joy—bright colors, confetti, smiling icons, or a celebration scene.
+– If negative: show a peaceful scene like gentle ocean waves, soft pastel colors, and a minimal layout with a calm tone.
+– If neutral: a quiet artist’s studio bathed in soft morning light, sketches, open notebooks, cinematic still-life composition with natural imperfections, evokes quiet focus, contemplation, and creative flow.
+– If positive: A joyful backyard dinner party at dusk, long wooden table under string lights, friends of diverse backgrounds laughing and talking, sharing food and drinks, warm and inviting atmosphere.
 
 Requirements:
-• Clean layout, subtle shadows, realistic or semi-realistic visual style.`;
+• Clean layout, subtle shadows, semi-realistic visual style.`;
 }
 
 function SocialMediaScreen() {
