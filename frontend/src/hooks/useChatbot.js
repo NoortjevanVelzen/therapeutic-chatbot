@@ -9,7 +9,7 @@ export default function useChatbot(onFinish) {
     {
       role: "assistant",
       content:
-        "I’ll adjust your feed to match: soothing content to help you relax, inspiring stories and light news when you're feeling neutral, and joyful posts that celebrate your happiness.",
+        "I'll tailor your feed to match your mood: calming content to ease your mind when you're feeling down, balanced content that resonates when you're feeling neutral, and uplifting posts that celebrate your happiness",
     },
     {
       role: "assistant",

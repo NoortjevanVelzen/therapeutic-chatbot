@@ -9,10 +9,12 @@ function generatePromptForMood(mood) {
   if (!mood || typeof mood !== "string" || mood.trim() === "") {
     mood = "neutral";
   }
-  return `A stylized photo designed to support the mood '${mood}'. GENERATE EITHER ONE OF THE FOLLOWING OPTIONS:
-– If negative: show a peaceful scene like gentle ocean waves, soft pastel colors, and a minimal layout with a calm tone.
-– If neutral: a quiet artist’s studio bathed in soft morning light, sketches, open notebooks, cinematic still-life composition with natural imperfections, evokes quiet focus, contemplation, and creative flow.
-– If positive: A joyful backyard dinner party at dusk, long wooden table under string lights, friends of diverse backgrounds laughing and talking, sharing food and drinks, warm and inviting atmosphere.
+  return `A stylized photo designed to support the mood '${mood}'. 
+  
+  GENERATE EITHER ONE OF THE FOLLOWING OPTIONS:
+– If negative (sad, frustrated, anxious, angry): show a peaceful scene like gentle ocean waves, soft pastel colors, and a minimal layout with a calm tone.
+– If neutral: A lived-in room lit by morning light, the space holding a quiet sense of ${mood}
+– If positive: A joyful backyard dinner party at dusk, long wooden table under string lights, friends of diverse backgrounds laughing and talking, reflecting a ${mood} atmosphere.
 
 Requirements:
 • Clean layout, subtle shadows, semi-realistic visual style.`;

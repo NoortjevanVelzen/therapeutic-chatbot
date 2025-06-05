@@ -27,7 +27,7 @@ router.post("/chat", async (req, res) => {
     if (!Array.isArray(messages)) return res.status(400).json({ error: "Messages must be an array." });
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o",
       messages
     });
     const reply = completion.choices[0]?.message?.content || "";
