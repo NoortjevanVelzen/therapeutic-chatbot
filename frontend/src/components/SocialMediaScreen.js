@@ -13,8 +13,8 @@ function generatePromptForMood(mood) {
   
   GENERATE EITHER ONE OF THE FOLLOWING OPTIONS:
 – If negative (sad, frustrated, anxious, angry): show a peaceful scene like gentle ocean waves, soft pastel colors, and a minimal layout with a calm tone.
-– If neutral: A lived-in room lit by morning light, the space holding a quiet sense of ${mood}
-– If positive: A joyful backyard dinner party at dusk, long wooden table under string lights, friends of diverse backgrounds laughing and talking, reflecting a ${mood} atmosphere.
+– If neutral: A lived-in room lit by morning light, the space holding a quiet sense of comfort and calmness.
+– If positive: A stylized photo capturing a joyful, uplifting mood. Picture a sunlit park filled with vibrant greenery and blooming flowers, children playing and laughing, adults enjoying a picnic with friends, everyone radiating happiness.
 
 Requirements:
 • Clean layout, subtle shadows, semi-realistic visual style.`;
